@@ -20,6 +20,11 @@ app.use((req, res, next) => {
   req.reqId = reqId;
 
   console.log(`📥 [${reqId}] ${req.method} ${req.url}`);
+  console.log(
+    `📥 [${reqId}] Full URL: ${req.protocol}://${req.get("host")}${
+      req.originalUrl
+    }`
+  );
   console.log(`📥 [${reqId}] Content-Type: ${req.headers["content-type"]}`);
   next();
 });
@@ -44,6 +49,24 @@ app.use((req, res, next) => {
   next();
 });
 
+// Add a root route for debugging
+app.all("/", (req, res) => {
+  console.log(`🏠 [${req.reqId}] Root route hit with ${req.method}`);
+  res.json({
+    message: "Voicebot Evaluator API",
+    endpoints: {
+      evaluate: "POST /voicebot-evaluator",
+      health: "GET /health",
+    },
+    receivedMethod: req.method,
+    receivedPath: req.url,
+    hint:
+      req.method === "GET"
+        ? "Use POST method for /voicebot-evaluator"
+        : "Wrong endpoint",
+  });
+});
+
 // Mount the router WITHOUT /api (Vercel already includes /api)
 app.use(voiceBotEvaluator);
 
@@ -66,7 +89,12 @@ app.use((req, res) => {
   console.log(
     `⚠️ [${req.reqId}] 404 - Route not found: ${req.method} ${req.url}`
   );
-  res.status(404).json({ error: "Route not found", path: req.url });
+  res.status(404).json({
+    error: "Route not found",
+    path: req.url,
+    method: req.method,
+    availableRoutes: ["POST /voicebot-evaluator", "GET /health", "GET /"],
+  });
 });
 
 // Error handler
