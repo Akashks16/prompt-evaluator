@@ -5,7 +5,10 @@ import voiceBotEvaluator from "./voicebot-evaluator.js";
 
 const app = express();
 
-app.use(express.json()); // Vercel supports this
-app.use("/api", voiceBotEvaluator);
+app.use(express.json());
 
-export const handler = serverless(app);
+// Mount the router WITHOUT /api (Vercel already includes /api)
+app.use(voiceBotEvaluator);
+
+// Required default export for Vercel
+export default serverless(app);
