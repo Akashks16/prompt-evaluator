@@ -1,10 +1,13 @@
 // api/server.js
 import express from "express";
+import serverless from "serverless-http";
 import voiceBotEvaluator from "./voicebot-evaluator.js";
 
 const app = express();
 app.use(express.json());
 
-app.use(voiceBotEvaluator); // Mount your evaluator route
+// mount router correctly
+app.use(voiceBotEvaluator);
 
-app.listen(3000, () => console.log("Server running on port 3000"));
+// export handler for Vercel
+export const handler = serverless(app);

@@ -1,16 +1,15 @@
-import "dotenv/config";
-import express from "express";
+// api/voicebot-evaluator.js
+import { Router } from "express";
 import OpenAI from "openai";
+import "dotenv/config";
 
-const app = express();
-app.use(express.json());
+const router = Router();
 
-// Initialize OpenAI with your API key (Vercel env var recommended)
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-app.post("/api/voicebot-evaluator", async (req, res) => {
+router.post("/api/voicebot-evaluator", async (req, res) => {
   try {
     const { input_text, evaluate_target } = req.body;
 
@@ -21,32 +20,7 @@ app.post("/api/voicebot-evaluator", async (req, res) => {
     const systemPrompt = `
 You are a **Voicebot Prompt Quality Assessor**.
 
-You will be given the full conversation between a user and an assistant.
-
-Evaluate the ${
-      evaluate_target || "assistant"
-    }'s responses based on the following 12 production-readiness metrics:
-1. Context Understanding  
-2. Hallucination Prevention  
-3. Prompt Length  
-4. Clarity  
-5. Relevance  
-6. Tone & Empathy  
-7. Compliance with SOP/Policies  
-8. Fallback Behavior  
-9. Redundancy  
-10. Grammar & Structure  
-11. User Intent Understanding  
-12. Output Format Consistency  
-
-Return the result as a markdown table:
-
-| # | Metric | Score (1-5) | Justification |
-|---|---------|-------------|----------------|
-| 1 | ... | ... | ... |
-
-At the end, include:
-**Total Points Scored**, **PASS %**, and **Status: PASS ✅ or FAIL ❌**
+Evaluate the ${evaluate_target || "assistant"} based on 12 metrics...
     `;
 
     const completion = await openai.chat.completions.create({
@@ -58,13 +32,13 @@ At the end, include:
       temperature: 0.3,
     });
 
-    const outputText = completion.choices?.[0]?.message?.content?.trim();
+    const outputText = completion?.choices?.[0]?.message?.content?.trim();
 
     return res.json({ output_text: outputText });
   } catch (err) {
-    console.error("Error evaluating prompt:", err);
+    console.error("Error evaluating:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-export default app;
+export default router;

@@ -221,11 +221,11 @@ const styles = {
 };
 
 function App() {
-  const [messages, setMessages] = useState([]);
-  const [inputText, setInputText] = useState("");
-  const [isSending, setIsSending] = useState(false);
-  const [status, setStatus] = useState("");
-  const messagesEndRef = useRef(null);
+  const [messages, setMessages] = useState<any>([]);
+  const [inputText, setInputText] = useState<any>("");
+  const [isSending, setIsSending] = useState<any>(false);
+  const [status, setStatus] = useState<any>("");
+  const messagesEndRef = useRef<any>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -250,13 +250,13 @@ function App() {
       raw: inputText.trim(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((prev: any) => [...prev, userMessage]);
     setInputText("");
     setIsSending(true);
     setStatus("Sending…");
 
     const typingId = Date.now() + 1;
-    setMessages((prev) => [
+    setMessages((prev: any) => [
       ...prev,
       { id: typingId, who: "assistant", isTyping: true, time: formatTime() },
     ]);
@@ -285,7 +285,7 @@ function App() {
         const t = await res.text();
         try {
           body = JSON.parse(t);
-        } catch (e) {
+        } catch (e: any) {
           body = { result: t };
         }
       }
@@ -304,9 +304,9 @@ function App() {
 
       md = md.replace(/\\n/g, "\n");
 
-      setMessages((prev) =>
+      setMessages((prev: any) =>
         prev
-          .filter((msg) => msg.id !== typingId)
+          .filter((msg: any) => msg.id !== typingId)
           .concat({
             id: Date.now() + 2,
             who: "assistant",
@@ -322,7 +322,7 @@ function App() {
       console.error(err);
       const errMsg = `An error occurred: ${err.message || String(err)}`;
 
-      setMessages((prev) =>
+      setMessages((prev: any) =>
         prev
           .filter((msg: any) => msg.id !== typingId)
           .concat({
@@ -341,7 +341,7 @@ function App() {
     }
   };
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = (e: any) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
