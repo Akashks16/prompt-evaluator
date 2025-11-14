@@ -107,4 +107,4 @@ app.use((err, req, res, next) => {
 console.log("✅ [INIT] Ready to handle requests");
 
 // Required default export for Vercel
-export default serverless(app);
+module.exports = serverless(app);
