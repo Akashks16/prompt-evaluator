@@ -31,15 +31,7 @@ router.post("/", async (req, res) => {
   try {
     const { input_text, evaluate_target } = req.body || {};
 
-    console.log(
-      `🟦 [${id}] Input text length: ${input_text?.length || 0} chars`
-    );
-    console.log(
-      `🟦 [${id}] Evaluate target: ${evaluate_target || "assistant"}`
-    );
-
     if (!input_text) {
-      console.log(`❌ [${id}] Missing input_text`);
       return res.status(400).json({
         success: false,
         error: "input_text is required",
@@ -50,9 +42,7 @@ router.post("/", async (req, res) => {
     console.log(`🟦 [${id}] Calling OpenAI API...`);
     const apiCallStart = Date.now();
 
-    // const timeoutMs = 8000; // 8 seconds timeout
-
-    const completionPromise = openai.chat.completions.create({
+    const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
@@ -86,30 +76,16 @@ Return the result as a markdown table:
 
 At the end, include:
 **Total Points Scored**, **PASS %**, and **Status: PASS ✅ or FAIL ❌**
-    `,
+        `,
         },
         { role: "user", content: input_text },
       ],
     });
 
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Request timeout")), timeoutMs)
-    );
-
-    console.log(
-      `🟦 [${id}] Waiting for OpenAI response (max ${timeoutMs}ms)...`
-    );
-    const completion = await Promise.race([completionPromise, timeoutPromise]);
-
     const apiCallDuration = Date.now() - apiCallStart;
-    console.log(`✅ [${id}] OpenAI API call completed in ${apiCallDuration}ms`);
-    console.log(
-      `✅ [${id}] Response length: ${
-        completion.choices[0].message.content?.length || 0
-      } chars`
-    );
-
     const totalDuration = Date.now() - start;
+
+    console.log(`✅ [${id}] OpenAI API call completed in ${apiCallDuration}ms`);
     console.log(`✅ [${id}] Total request duration: ${totalDuration}ms`);
     console.log(`✅ [${id}] ========== REQUEST SUCCESS ==========`);
 
@@ -122,22 +98,7 @@ At the end, include:
     });
   } catch (err) {
     const errorDuration = Date.now() - start;
-    console.error(`❌ [${id}] ========== REQUEST FAILED ==========`);
-    console.error(`❌ [${id}] Error type: ${err.constructor.name}`);
-    console.error(`❌ [${id}] Error message: ${err.message}`);
-    console.error(`❌ [${id}] Error stack:`, err.stack);
-    console.error(`❌ [${id}] Duration before error: ${errorDuration}ms`);
-    console.error(`❌ [${id}] ========================================`);
-
-    if (err.message === "Request timeout") {
-      return res.status(504).json({
-        success: false,
-        error:
-          "Request timed out. Try with shorter input or upgrade to Vercel Pro.",
-        request_id: id,
-        duration_ms: errorDuration,
-      });
-    }
+    console.error(`❌ [${id}] REQUEST FAILED:`, err);
 
     return res.status(500).json({
       success: false,
@@ -148,7 +109,7 @@ At the end, include:
   }
 });
 
-// Add a health check endpoint
+// Health check
 router.get("/health", (req, res) => {
   console.log(`💚 Health check called`);
   res.json({
