@@ -6,8 +6,8 @@ import voiceBotEvaluator from "./voicebot-evaluator.js";
 const app = express();
 app.use(express.json());
 
-// mount router correctly
+// Mount router
 app.use(voiceBotEvaluator);
 
-// export handler for Vercel
-export const handler = serverless(app);
+// Export DEFAULT handler — REQUIRED by Vercel
+export default serverless(app);
