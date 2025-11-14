@@ -50,7 +50,7 @@ router.post("/", async (req, res) => {
     console.log(`🟦 [${id}] Calling OpenAI API...`);
     const apiCallStart = Date.now();
 
-    const timeoutMs = 8000; // 8 seconds timeout
+    // const timeoutMs = 8000; // 8 seconds timeout
 
     const completionPromise = openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -90,7 +90,6 @@ At the end, include:
         },
         { role: "user", content: input_text },
       ],
-      timeout: timeoutMs,
     });
 
     const timeoutPromise = new Promise((_, reject) =>
