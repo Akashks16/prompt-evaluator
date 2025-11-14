@@ -12,4 +12,9 @@ app.get("/", (req, res) => {
 });
 app.use("/api/voicebot-evaluator", voicebotEvaluator);
 
-export const handler = serverless(app);
+// export const handler = serverless(app);
+app.listen(3000, () => {
+  console.log("listenting");
+});
+
+export default app;
