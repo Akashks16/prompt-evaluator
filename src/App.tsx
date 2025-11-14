@@ -309,7 +309,7 @@ function App() {
             >
               <div style={styles.meta}>
                 <div style={styles.metaWho}>
-                  {msg.who === "user" ? "You" : "VoiceBot"}
+                  {msg.who === "user" ? "You" : "Evaluator"}
                 </div>
                 <div style={styles.metaTime}>{msg.time}</div>
               </div>
