@@ -2,9 +2,10 @@
 import { useState, useRef, useEffect } from "react";
 import { marked } from "https://cdn.jsdelivr.net/npm/marked@11.1.1/+esm";
 import DOMPurify from "https://cdn.jsdelivr.net/npm/dompurify@3.0.8/+esm";
+import logo from "./assets/logo.jpg";
 
 // Change this to your actual Vercel deployment URL
-const API_BASE_URL = window.location.origin; // Uses current domain
+const API_BASE_URL = window.location.origin;
 const API_ENDPOINT = `${API_BASE_URL}/api/voicebot-evaluator`;
 const EVALUATE_TARGET = "assistant";
 
@@ -14,8 +15,8 @@ const styles = {
     width: "100vw",
     display: "flex",
     flexDirection: "column",
-    background: "#f8fafc",
-    color: "#1e293b",
+    background: "#0f1419",
+    color: "#f1f5f9",
     fontFamily:
       'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial',
     overflow: "hidden",
@@ -25,31 +26,32 @@ const styles = {
     alignItems: "center",
     gap: "12px",
     padding: "16px 24px",
-    borderBottom: "1px solid #e2e8f0",
-    background: "#ffffff",
+    borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+    background: "rgba(20, 28, 38, 0.8)",
+    backdropFilter: "blur(12px)",
     flexShrink: 0,
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
+    boxShadow: "0 4px 24px rgba(0, 0, 0, 0.4)",
   },
   logo: {
-    width: "44px",
-    height: "44px",
-    borderRadius: "10px",
-    background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+    width: "40px",
+    height: "40px",
+    borderRadius: "5px",
+    background: "white",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     fontWeight: 700,
     color: "#ffffff",
-    boxShadow: "0 4px 12px rgba(59, 130, 246, 0.3)",
+    boxShadow: "0 0 24px rgba(6, 182, 212, 0.5)",
   },
   headerTitle: {
     fontSize: "16px",
     margin: 0,
-    color: "#0f172a",
+    color: "#ffffff",
   },
   headerSub: {
     fontSize: "12px",
-    color: "#64748b",
+    color: "#94a3b8",
     marginLeft: "6px",
   },
   headerInfo: {
@@ -61,20 +63,21 @@ const styles = {
     alignItems: "center",
     gap: "8px",
     fontSize: "13px",
-    color: "#64748b",
+    color: "#94a3b8",
   },
   statusDot: {
     width: "8px",
     height: "8px",
     borderRadius: "50%",
     background: "#10b981",
-    boxShadow: "0 0 6px rgba(16, 185, 129, 0.4)",
+    boxShadow: "0 0 12px rgba(16, 185, 129, 0.7)",
   },
   messagesContainer: {
     flex: 1,
     overflowY: "auto",
     overflowX: "hidden",
     padding: "18px",
+    background: "linear-gradient(180deg, #0f1419 0%, #1a1f29 100%)",
   },
   messagesInner: {
     display: "flex",
@@ -85,13 +88,13 @@ const styles = {
     maxWidth: "78%",
     padding: "12px 16px",
     borderRadius: "12px",
-    lineHeight: "1.5",
-    boxShadow: "0 2px 8px rgba(59, 130, 246, 0.15)",
+    lineHeight: "1.6",
+    boxShadow: "0 4px 16px rgba(6, 182, 212, 0.3)",
     wordWrap: "break-word",
     whiteSpace: "pre-wrap",
     alignSelf: "flex-end",
-    background: "linear-gradient(135deg, #3b82f6, #2563eb)",
-    color: "white",
+    background: "linear-gradient(135deg, #06b6d4, #0891b2)",
+    color: "#ffffff",
     borderBottomRightRadius: "4px",
     textAlign: "left",
   },
@@ -99,16 +102,17 @@ const styles = {
     maxWidth: "78%",
     padding: "12px 16px",
     borderRadius: "12px",
-    lineHeight: "1.5",
-    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
+    lineHeight: "1.6",
+    boxShadow: "0 4px 16px rgba(0, 0, 0, 0.4)",
     wordWrap: "break-word",
     whiteSpace: "pre-wrap",
     alignSelf: "flex-start",
-    background: "#ffffff",
-    color: "#1e293b",
+    background: "rgba(30, 41, 59, 0.6)",
+    backdropFilter: "blur(8px)",
+    color: "#f1f5f9",
     borderBottomLeftRadius: "4px",
     textAlign: "left",
-    border: "1px solid #e2e8f0",
+    border: "1px solid rgba(148, 163, 184, 0.2)",
   },
   meta: {
     display: "flex",
@@ -119,6 +123,7 @@ const styles = {
   metaWho: {
     fontWeight: 600,
     fontSize: "13px",
+    color: "#ffffff",
   },
   metaTime: {
     fontSize: "12px",
@@ -126,6 +131,7 @@ const styles = {
   },
   content: {
     fontSize: "14px",
+    color: "#f1f5f9",
   },
   msgActions: {
     display: "flex",
@@ -134,10 +140,11 @@ const styles = {
   },
   footer: {
     padding: "16px 24px",
-    borderTop: "1px solid #e2e8f0",
-    background: "#ffffff",
+    borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+    background: "rgba(20, 28, 38, 0.8)",
+    backdropFilter: "blur(12px)",
     flexShrink: 0,
-    boxShadow: "0 -1px 3px rgba(0, 0, 0, 0.05)",
+    boxShadow: "0 -4px 24px rgba(0, 0, 0, 0.4)",
   },
   inputArea: {
     display: "flex",
@@ -150,9 +157,9 @@ const styles = {
     maxHeight: "220px",
     padding: "12px 14px",
     borderRadius: "10px",
-    background: "#ffffff",
-    color: "#1e293b",
-    border: "1.5px solid #cbd5e1",
+    background: "rgba(30, 41, 59, 0.6)",
+    color: "#f1f5f9",
+    border: "1.5px solid rgba(148, 163, 184, 0.2)",
     fontSize: "14px",
     outline: "none",
     fontFamily: "inherit",
@@ -171,9 +178,9 @@ const styles = {
     flexWrap: "wrap",
   },
   button: {
-    background: "#ffffff",
-    color: "#475569",
-    border: "1px solid #cbd5e1",
+    background: "rgba(51, 65, 85, 0.6)",
+    color: "#cbd5e1",
+    border: "1px solid rgba(148, 163, 184, 0.2)",
     padding: "8px 14px",
     borderRadius: "8px",
     cursor: "pointer",
@@ -182,10 +189,10 @@ const styles = {
     transition: "all 0.2s",
   },
   buttonPrimary: {
-    background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+    background: "linear-gradient(135deg, #06b6d4, #0891b2)",
     color: "#ffffff",
     border: "none",
-    boxShadow: "0 2px 8px rgba(59, 130, 246, 0.25)",
+    boxShadow: "0 4px 16px rgba(6, 182, 212, 0.4)",
     padding: "8px 16px",
     borderRadius: "8px",
     cursor: "pointer",
@@ -201,9 +208,9 @@ const styles = {
     fontSize: "12px",
     padding: "6px 10px",
     borderRadius: "6px",
-    background: "#f1f5f9",
-    color: "#475569",
-    border: "1px solid #e2e8f0",
+    background: "rgba(51, 65, 85, 0.6)",
+    color: "#cbd5e1",
+    border: "1px solid rgba(148, 163, 184, 0.2)",
     cursor: "pointer",
     fontWeight: 500,
     transition: "all 0.2s",
@@ -216,7 +223,7 @@ const styles = {
   typingDot: {
     width: "8px",
     height: "8px",
-    background: "#94a3af",
+    background: "#94a3b8",
     borderRadius: "50%",
     animation: "blink 1.2s infinite",
   },
@@ -419,44 +426,94 @@ function App() {
     <div style={styles.app}>
       <style>{`
         @keyframes blink {
-          0%, 100% { opacity: 0; }
+          0%, 100% { opacity: 0.4; }
           50% { opacity: 1; }
         }
         .typing-dot-1 { animation-delay: 0s; }
         .typing-dot-2 { animation-delay: 0.15s; }
         .typing-dot-3 { animation-delay: 0.3s; }
         pre {
-          background: #f1f5f9;
+          background: rgba(30, 41, 59, 0.8);
           padding: 12px;
           border-radius: 8px;
           overflow: auto;
           font-family: Menlo, monospace;
           font-size: 13px;
-          border: 1px solid #e2e8f0;
+          border: 1px solid rgba(148, 163, 184, 0.2);
+          color: #f1f5f9;
+        }
+        code {
+          background: rgba(30, 41, 59, 0.6);
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-family: Menlo, monospace;
+          font-size: 13px;
+          color: #67e8f9;
+        }
+        h1, h2, h3, h4, h5, h6 {
+          color: #ffffff;
+          margin-top: 1em;
+          margin-bottom: 0.5em;
+        }
+        p {
+          margin: 0.5em 0;
+        }
+        ul, ol {
+          margin: 0.5em 0;
+          padding-left: 1.5em;
+        }
+        li {
+          margin: 0.25em 0;
+        }
+        blockquote {
+          border-left: 3px solid #06b6d4;
+          padding-left: 1em;
+          margin: 1em 0;
+          color: #cbd5e1;
         }
         button:hover:not(:disabled) {
           transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          background: rgba(71, 85, 105, 0.8);
+          border-color: rgba(148, 163, 184, 0.3);
+        }
+        button.primary:hover:not(:disabled) {
+          box-shadow: 0 6px 20px rgba(6, 182, 212, 0.6);
+          transform: translateY(-2px);
         }
         textarea:focus {
-          border-color: #3b82f6;
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+          border-color: #06b6d4;
+          box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
+        }
+        textarea::placeholder {
+          color: #64748b;
+        }
+        a {
+          color: #22d3ee;
+          text-decoration: none;
+        }
+        a:hover {
+          text-decoration: underline;
+        }
+        ::-webkit-scrollbar {
+          width: 10px;
+          height: 10px;
+        }
+        ::-webkit-scrollbar-track {
+          background: rgba(30, 41, 59, 0.4);
+        }
+        ::-webkit-scrollbar-thumb {
+          background: rgba(100, 116, 139, 0.6);
+          border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: rgba(100, 116, 139, 0.8);
         }
       `}</style>
 
       <header style={styles.header}>
-        <div style={styles.logo}>V</div>
+        <img style={styles.logo} src={logo} />
         <div>
-          <h1 style={styles.headerTitle}>
-            VoiceBot Evaluator <span style={styles.headerSub}>— chat UI</span>
-          </h1>
-          <div style={styles.headerInfo}>API: {API_ENDPOINT}</div>
-        </div>
-        <div style={{ marginLeft: "auto" }}>
-          <div style={styles.status}>
-            <div style={styles.statusDot} />
-            <div>Connected</div>
-          </div>
+          <h1 style={styles.headerTitle}>Kapture VoiceBot Evaluator</h1>
         </div>
       </header>
 
@@ -526,13 +583,14 @@ function App() {
             </div>
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
               {status && (
-                <div style={{ fontSize: "13px", color: "#64748b" }}>
+                <div style={{ fontSize: "13px", color: "#94a3b8" }}>
                   {status}
                 </div>
               )}
               <button
                 onClick={handleSendMessage}
                 disabled={isSending}
+                className="primary"
                 style={{
                   ...styles.buttonPrimary,
                   ...(isSending ? styles.buttonDisabled : {}),
