@@ -31,8 +31,6 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
-console.log("✅ [INIT] Express middleware configured");
-
 // Log parsed body
 app.use((req, res, next) => {
   if (req.body && Object.keys(req.body).length > 0) {
@@ -49,28 +47,35 @@ app.use((req, res, next) => {
   next();
 });
 
-// Add a root route for debugging
+// Force GET requests with body to be treated as POST
+app.use((req, res, next) => {
+  if (req.method === "GET" && req.body && Object.keys(req.body).length > 0) {
+    console.log(`⚡ [${req.reqId}] Converting GET to POST internally`);
+    req.method = "POST";
+  }
+  next();
+});
+
+// Mount the voicebot router at /api
+app.use("/api", voiceBotEvaluator);
+
+// Root route for debugging
 app.all("/", (req, res) => {
   console.log(`🏠 [${req.reqId}] Root route hit with ${req.method}`);
   res.json({
     message: "Voicebot Evaluator API",
     endpoints: {
-      evaluate: "POST /voicebot-evaluator",
-      health: "GET /health",
+      evaluate: "POST /api/voicebot-evaluator",
+      health: "GET /api/health",
     },
     receivedMethod: req.method,
     receivedPath: req.url,
     hint:
       req.method === "GET"
-        ? "Use POST method for /voicebot-evaluator"
+        ? "Use POST method for /api/voicebot-evaluator"
         : "Wrong endpoint",
   });
 });
-
-// Mount the router WITHOUT /api (Vercel already includes /api)
-app.use("/", voiceBotEvaluator);
-
-console.log("✅ [INIT] Router mounted");
 
 // Log responses
 app.use((req, res, next) => {
@@ -93,7 +98,11 @@ app.use((req, res) => {
     error: "Route not found",
     path: req.url,
     method: req.method,
-    availableRoutes: ["POST /voicebot-evaluator", "GET /health", "GET /"],
+    availableRoutes: [
+      "POST /api/voicebot-evaluator",
+      "GET /api/health",
+      "GET /",
+    ],
   });
 });
 
@@ -106,5 +115,5 @@ app.use((err, req, res, next) => {
 
 console.log("✅ [INIT] Ready to handle requests");
 
-// Required default export for Vercel
+// Export default for Vercel (ES module)
 export default serverless(app);
