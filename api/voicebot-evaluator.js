@@ -11,7 +11,7 @@ function reqId() {
   return crypto.randomUUID();
 }
 
-router.post("/voicebot-evaluator", async (req, res) => {
+router.post("*", async (req, res) => {
   const id = reqId();
   const start = Date.now();
 
