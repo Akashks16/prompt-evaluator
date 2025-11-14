@@ -3,7 +3,9 @@ import { useState, useRef, useEffect } from "react";
 import { marked } from "https://cdn.jsdelivr.net/npm/marked@11.1.1/+esm";
 import DOMPurify from "https://cdn.jsdelivr.net/npm/dompurify@3.0.8/+esm";
 
-const API_ENDPOINT = "/api/voicebot-evaluator";
+// Change this to your actual Vercel deployment URL
+const API_BASE_URL = window.location.origin; // Uses current domain
+const API_ENDPOINT = `${API_BASE_URL}/api/voicebot-evaluator`;
 const EVALUATE_TARGET = "assistant";
 
 const styles = {
@@ -227,6 +229,12 @@ function App() {
   const [status, setStatus] = useState<any>("");
   const messagesEndRef = useRef<any>(null);
 
+  useEffect(() => {
+    console.log("🔧 App initialized");
+    console.log("🔧 API Endpoint:", API_ENDPOINT);
+    console.log("🔧 Current URL:", window.location.href);
+  }, []);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -250,6 +258,10 @@ function App() {
       raw: inputText.trim(),
     };
 
+    console.log(
+      "📤 [CLIENT] Sending message:",
+      userMessage.text.substring(0, 50)
+    );
     setMessages((prev: any) => [...prev, userMessage]);
     setInputText("");
     setIsSending(true);
@@ -262,6 +274,14 @@ function App() {
     ]);
 
     try {
+      console.log("🌐 [CLIENT] Fetching:", API_ENDPOINT);
+      console.log("🌐 [CLIENT] Method: POST");
+      console.log("🌐 [CLIENT] Payload:", {
+        evaluate_target: EVALUATE_TARGET,
+        input_text_length: userMessage.text.length,
+      });
+
+      const fetchStart = Date.now();
       const res = await fetch(API_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -271,24 +291,37 @@ function App() {
         }),
       });
 
+      const fetchDuration = Date.now() - fetchStart;
+      console.log(`⏱️ [CLIENT] Fetch completed in ${fetchDuration}ms`);
+      console.log(`📥 [CLIENT] Response status: ${res.status}`);
+      console.log(`📥 [CLIENT] Response OK: ${res.ok}`);
+
       if (!res.ok) {
         const txt = await res.text();
+        console.error("❌ [CLIENT] Error response:", txt);
         throw new Error(`Server error: ${res.status} — ${txt}`);
       }
 
       const contentType = res.headers.get("content-type") || "";
+      console.log("📋 [CLIENT] Content-Type:", contentType);
+
       let body;
 
       if (contentType.includes("application/json")) {
         body = await res.json();
+        console.log("✅ [CLIENT] Parsed JSON response");
       } else {
         const t = await res.text();
+        console.log("📝 [CLIENT] Got text response, attempting JSON parse");
         try {
           body = JSON.parse(t);
         } catch (e: any) {
+          console.log("⚠️ [CLIENT] Not JSON, using as plain text");
           body = { result: t };
         }
       }
+
+      console.log("📦 [CLIENT] Response body keys:", Object.keys(body));
 
       let md = "";
       if (typeof body === "string") md = body;
@@ -303,6 +336,7 @@ function App() {
       }
 
       md = md.replace(/\\n/g, "\n");
+      console.log("✅ [CLIENT] Markdown length:", md.length);
 
       setMessages((prev: any) =>
         prev
@@ -318,8 +352,12 @@ function App() {
       );
 
       setStatus("Done");
+      console.log("✅ [CLIENT] Message added to chat");
     } catch (err: any) {
-      console.error(err);
+      console.error("❌ [CLIENT] Error:", err);
+      console.error("❌ [CLIENT] Error type:", err.constructor.name);
+      console.error("❌ [CLIENT] Error message:", err.message);
+
       const errMsg = `An error occurred: ${err.message || String(err)}`;
 
       setMessages((prev: any) =>
@@ -351,12 +389,13 @@ function App() {
   const handleClear = () => {
     setMessages([]);
     setInputText("");
+    console.log("🗑️ [CLIENT] Chat cleared");
   };
 
   const handleCopyLast = () => {
     const lastAssistant: any = [...messages]
       .reverse()
-      .find((msg: any) => msg.who === "assistant" && !msg.isTyping);
+      .find((msg) => msg.who === "assistant" && !msg.isTyping);
 
     if (!lastAssistant) {
       alert("No assistant message to copy.");
@@ -411,14 +450,12 @@ function App() {
           <h1 style={styles.headerTitle}>
             VoiceBot Evaluator <span style={styles.headerSub}>— chat UI</span>
           </h1>
-          <div style={styles.headerInfo}>
-            Ask anything. Responses are rendered from Markdown.
-          </div>
+          <div style={styles.headerInfo}>API: {API_ENDPOINT}</div>
         </div>
         <div style={{ marginLeft: "auto" }}>
           <div style={styles.status}>
             <div style={styles.statusDot} />
-            <div>Local API</div>
+            <div>Connected</div>
           </div>
         </div>
       </header>
