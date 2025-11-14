@@ -1,34 +1,13 @@
+// api/server.js
 import express from "express";
-import serverless from "serverless-http";
-import crypto from "crypto";
 import voiceBotEvaluator from "./voicebot-evaluator.js";
 
 const app = express();
+const PORT = 3000;
 
-if (!process.env.VERCEL) {
-  console.log("Local → enabling express.json()");
-  app.use(express.json());
-} else {
-  console.log("Vercel → using Vercel's body parser");
-}
+app.use(express.json());
+app.use("/api", voiceBotEvaluator);
 
-app.use((req, res, next) => {
-  req._reqId = crypto.randomUUID();
-  console.log(`\n-------- REQUEST ${req._reqId} --------`);
-  console.log(`${req.method} ${req.originalUrl}`);
-  console.log("Body:", req.body);
-  next();
+app.listen(PORT, () => {
+  console.log(`🚀 Local server running → http://localhost:${PORT}`);
 });
-
-// IMPORTANT: Mount at root
-app.use("/", voiceBotEvaluator);
-
-app.use((err, req, res, next) => {
-  console.error(`❌ Error in req ${req._reqId}:`, err);
-  res.status(500).json({
-    request_id: req._reqId,
-    error: err?.message || "Internal error",
-  });
-});
-
-export default serverless(app);
