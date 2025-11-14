@@ -4,10 +4,14 @@ import serverless from "serverless-http";
 import voiceBotEvaluator from "./voicebot-evaluator.js";
 
 const app = express();
-app.use(express.json());
+
+// Vercel already parses the request body
+if (!process.env.VERCEL) {
+  app.use(express.json());
+}
 
 // Mount router
 app.use(voiceBotEvaluator);
 
-// Export DEFAULT handler — REQUIRED by Vercel
+// Default export required by Vercel
 export default serverless(app);
