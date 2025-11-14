@@ -68,7 +68,7 @@ app.all("/", (req, res) => {
 });
 
 // Mount the router WITHOUT /api (Vercel already includes /api)
-app.use("/api", voiceBotEvaluator);
+app.use("/", voiceBotEvaluator);
 
 console.log("✅ [INIT] Router mounted");
 
